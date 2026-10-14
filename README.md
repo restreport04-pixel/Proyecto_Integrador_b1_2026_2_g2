@@ -1,34 +1,41 @@
-# My Application README
+# Sistema de Gestión de Coworking - Proyecto Integrador
 
-- [ ] TODO Replace or update this README with instructions relevant to your application
+![Java](https://img.shields.io/badge/Java-21-orange.svg)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-green.svg)
+![Vaadin](https://img.shields.io/badge/Vaadin-25.3-blue.svg)
+![Build](https://img.shields.io/badge/Build-Passing-brightgreen.svg)
 
-To start the application in development mode, import it into your IDE and run the `Application` class. 
-You can also start the application from the command line by running: 
+## Resumen Ejecutivo
+El sistema resuelve la gestión centralizada de espacios de coworking, permitiendo administrar usuarios, áreas de trabajo y reservas. Proporciona una interfaz web reactiva y una persistencia de datos liviana y optimizada sin sobreingeniería, garantizando alta eficiencia en el manejo de transacciones CRUD.
 
-```bash
-./mvnw
-```
+## Arquitectura
+Arquitectura en capas desacoplada siguiendo el patrón DAO:
+- **Capa de Presentación (UI):** Vistas web interactivas construidas con Vaadin Flow.
+- **Capa de Acceso a Datos (DAO):** Consultas SQL directas mediante `JdbcTemplate` y mapeo manual con `RowMapper`.
+- **Capa del Modelo (POJO):** Entidades puras en Java sin anotaciones ORM/JPA.
+- **Base de Datos:** PostgreSQL en la nube (Neon.tech).
 
-To build the application in production mode, run:
+## Modelo de Datos
+El modelo relacional está compuesto por tres entidades principales: `Usuario`, `Espacio` y `Reserva`.
 
-```bash
-./mvnw package
-```
+![Diagrama MER](docs/mer.png)
 
-To build a Docker image, run:
+## Stack Tecnológico
+- **Lenguaje:** Java 21
+- **Framework Web & UI:** Vaadin 25.3.0 + Spring Boot
+- **Persistencia:** Spring JDBC (`JdbcTemplate`)
+- **Base de Datos:** PostgreSQL (Neon.tech)
+- **Gestor de Dependencias:** Apache Maven
 
-```bash
-docker build -t my-application:latest .
-```
+## Guía de Configuración
 
-If you use commercial components, pass the license key as a build secret:
+### Prerrequisitos
+- JDK 21 instalado
+- Git
 
-```bash
-docker build --secret id=proKey,src=$HOME/.vaadin/proKey .
-```
-
-## Getting Started
-
-The [Quick Start](https://vaadin.com/docs/v25/getting-started/quick-start) tutorial helps you get started with Vaadin in 
-around 10 minutes. This tutorial walks you through building a simple application, introducing the core concepts along 
-the way.
+### Variables de Entorno y Conexión
+Configurar `src/main/resources/application.properties`:
+```properties
+spring.datasource.url=jdbc:postgresql://<HOST_NEON>:5432/<DATABASE>?sslmode=require
+spring.datasource.username=<USUARIO>
+spring.datasource.password=<PASSWORD>
