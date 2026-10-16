@@ -39,7 +39,7 @@ Antes de empezar, asegúrate de tener instalado en tu computadora:
 
 1. Descargar el código fuente
 Abre una terminal y clona el repositorio del proyecto:
-git clone https://github.com/restreport04-pixel/Proyecto-integrador-b1-2026-2-g2.git
+git clone https://github.com/restreport04-pixel/Proyecto_Integrador_b1_2026_2_g2.git
 
 2. Ingresar al directorio del proyecto
 En la misma terminal, entra a la carpeta que se acaba de descargar:
