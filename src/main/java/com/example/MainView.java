@@ -1,134 +1,117 @@
 package com.example;
 
+import com.example.dao.EspacioDAO;
+import com.example.dao.ReservaDAO;
+import com.example.dao.TipoEspacioDAO;
+import com.example.dao.UsuarioDAO;
+import com.example.model.Espacio;
+import com.example.model.Reserva;
+import com.example.model.TipoEspacio;
+import com.example.model.Usuario;
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.TabSheet;
-import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import org.springframework.jdbc.core.JdbcTemplate;
 
-@PageTitle("Gestión CRUD - 2 Entidades")
+@PageTitle("Gestión Coworking - CRUD")
 @Route("")
 public class MainView extends VerticalLayout {
 
-    public MainView() {
+    private final UsuarioDAO usuarioDAO;
+    private final TipoEspacioDAO tipoEspacioDAO;
+    private final EspacioDAO espacioDAO;
+    private final ReservaDAO reservaDAO;
+
+    public MainView(JdbcTemplate jdbcTemplate) {
+        this.usuarioDAO = new UsuarioDAO(jdbcTemplate);
+        this.tipoEspacioDAO = new TipoEspacioDAO(jdbcTemplate);
+        this.espacioDAO = new EspacioDAO(jdbcTemplate);
+        this.reservaDAO = new ReservaDAO(jdbcTemplate);
+
         setSizeFull();
         setPadding(true);
         setSpacing(true);
 
-        H2 titulo = new H2("Gestión de Entidades (CRUD)");
+        H2 titulo = new H2("Sistema de Gestión de Coworking");
 
         TabSheet tabSheet = new TabSheet();
         tabSheet.setWidthFull();
 
-        tabSheet.add("Entidad 1", crearSeccionEntidad1());
-        tabSheet.add("Entidad 2", crearSeccionEntidad2());
+        tabSheet.add("Usuarios", crearSeccionUsuarios());
+        tabSheet.add("Tipos de Espacio", crearSeccionTipoEspacio());
+        tabSheet.add("Espacios", crearSeccionEspacios());
+        tabSheet.add("Reservas", crearSeccionReservas());
 
         add(titulo, tabSheet);
     }
 
-    // Método privado para gestionar la primera entidad
-    private Component crearSeccionEntidad1() {
+    private Component crearSeccionUsuarios() {
         VerticalLayout layout = new VerticalLayout();
-        layout.setPadding(false);
+        layout.setSizeFull();
 
-        TextField idField = new TextField("ID");
-        TextField nombreField = new TextField("Nombre");
-        TextField descripcionField = new TextField("Descripción");
+        Grid<Usuario> grid = new Grid<>(Usuario.class, false);
+        grid.addColumn(u -> u.getId()).setHeader("ID");
+        grid.addColumn(u -> u.getNombre()).setHeader("Nombre");
+        grid.addColumn(u -> u.getEmail()).setHeader("Email");
+        grid.addColumn(u -> u.getTelefono()).setHeader("Teléfono");
 
-        FormLayout form = new FormLayout(idField, nombreField, descripcionField);
+        grid.setItems(usuarioDAO.obtenerTodos());
 
-        Button btnCrear = new Button("Crear", e -> 
-            Notification.show("Entidad 1 - Crear: " + nombreField.getValue())
-        );
-        btnCrear.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-
-        Button btnConsultar = new Button("Consultar", e -> 
-            Notification.show("Entidad 1 - Consultar ID: " + idField.getValue())
-        );
-
-        Button btnActualizar = new Button("Actualizar", e -> 
-            Notification.show("Entidad 1 - Actualizar ID: " + idField.getValue())
-        );
-
-        Button btnEliminar = new Button("Eliminar", e -> 
-            Notification.show("Entidad 1 - Eliminar ID: " + idField.getValue())
-        );
-        btnEliminar.addThemeVariants(ButtonVariant.LUMO_ERROR);
-
-        Button btnLimpiar = new Button("Limpiar", e -> {
-            idField.clear();
-            nombreField.clear();
-            descripcionField.clear();
-        });
-
-        HorizontalLayout acciones = new HorizontalLayout(
-            btnCrear, btnConsultar, btnActualizar, btnEliminar, btnLimpiar
-        );
-        acciones.getStyle().set("flex-wrap", "wrap");
-
-        Grid<String[]> grid = new Grid<>();
-        grid.addColumn(row -> row[0]).setHeader("ID").setAutoWidth(true);
-        grid.addColumn(row -> row[1]).setHeader("Nombre").setAutoWidth(true);
-        grid.addColumn(row -> row[2]).setHeader("Descripción").setAutoWidth(true);
-
-        layout.add(form, acciones, grid);
+        layout.add(grid);
         return layout;
     }
 
-    // Método privado para gestionar la segunda entidad
-    private Component crearSeccionEntidad2() {
+    private Component crearSeccionTipoEspacio() {
         VerticalLayout layout = new VerticalLayout();
-        layout.setPadding(false);
+        layout.setSizeFull();
 
-        TextField idField = new TextField("Código / ID");
-        TextField tituloField = new TextField("Título");
-        TextField categoriaField = new TextField("Categoría");
+        Grid<TipoEspacio> grid = new Grid<>(TipoEspacio.class, false);
+        grid.addColumn(t -> t.getId()).setHeader("ID");
+        grid.addColumn(t -> t.getNombre()).setHeader("Nombre");
+        grid.addColumn(t -> t.getDescripcion()).setHeader("Descripción");
 
-        FormLayout form = new FormLayout(idField, tituloField, categoriaField);
+        grid.setItems(tipoEspacioDAO.obtenerTodos());
 
-        Button btnCrear = new Button("Crear", e -> 
-            Notification.show("Entidad 2 - Crear: " + tituloField.getValue())
-        );
-        btnCrear.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        layout.add(grid);
+        return layout;
+    }
 
-        Button btnConsultar = new Button("Consultar", e -> 
-            Notification.show("Entidad 2 - Consultar Código: " + idField.getValue())
-        );
+    private Component crearSeccionEspacios() {
+        VerticalLayout layout = new VerticalLayout();
+        layout.setSizeFull();
 
-        Button btnActualizar = new Button("Actualizar", e -> 
-            Notification.show("Entidad 2 - Actualizar Código: " + idField.getValue())
-        );
+        Grid<Espacio> grid = new Grid<>(Espacio.class, false);
+        grid.addColumn(e -> e.getId()).setHeader("ID");
+        grid.addColumn(e -> e.getNombre()).setHeader("Nombre");
+        grid.addColumn(e -> e.getCapacidad()).setHeader("Capacidad");
+        grid.addColumn(e -> e.getPrecioHora()).setHeader("Precio/Hora");
+        grid.addColumn(e -> e.getTipoEspacioId()).setHeader("Tipo Espacio ID");
 
-        Button btnEliminar = new Button("Eliminar", e -> 
-            Notification.show("Entidad 2 - Eliminar Código: " + idField.getValue())
-        );
-        btnEliminar.addThemeVariants(ButtonVariant.LUMO_ERROR);
+        grid.setItems(espacioDAO.obtenerTodos());
 
-        Button btnLimpiar = new Button("Limpiar", e -> {
-            idField.clear();
-            tituloField.clear();
-            categoriaField.clear();
-        });
+        layout.add(grid);
+        return layout;
+    }
 
-        HorizontalLayout acciones = new HorizontalLayout(
-            btnCrear, btnConsultar, btnActualizar, btnEliminar, btnLimpiar
-        );
-        acciones.getStyle().set("flex-wrap", "wrap");
+    private Component crearSeccionReservas() {
+        VerticalLayout layout = new VerticalLayout();
+        layout.setSizeFull();
 
-        Grid<String[]> grid = new Grid<>();
-        grid.addColumn(row -> row[0]).setHeader("Código / ID").setAutoWidth(true);
-        grid.addColumn(row -> row[1]).setHeader("Título").setAutoWidth(true);
-        grid.addColumn(row -> row[2]).setHeader("Categoría").setAutoWidth(true);
+        Grid<Reserva> grid = new Grid<>(Reserva.class, false);
+        grid.addColumn(r -> r.getId()).setHeader("ID");
+        grid.addColumn(r -> r.getUsuarioId()).setHeader("Usuario ID");
+        grid.addColumn(r -> r.getEspacioId()).setHeader("Espacio ID");
+        grid.addColumn(r -> r.getFechaInicio()).setHeader("Fecha Inicio");
+        grid.addColumn(r -> r.getFechaFin()).setHeader("Fecha Fin");
+        grid.addColumn(r -> r.getTotalPagar()).setHeader("Total Pagar");
 
-        layout.add(form, acciones, grid);
+        grid.setItems(reservaDAO.obtenerTodos());
+
+        layout.add(grid);
         return layout;
     }
 }

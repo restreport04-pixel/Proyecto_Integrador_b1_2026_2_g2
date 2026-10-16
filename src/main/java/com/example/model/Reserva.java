@@ -1,20 +1,40 @@
 package com.example.model;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class Reserva {
     private Long id;
     private Long usuarioId;
     private Long espacioId;
-    private LocalDate fecha;
+    private LocalDateTime fechaInicio;
+    private LocalDateTime fechaFin;
+    private Double totalPagar;
 
     public Reserva() {}
 
-    public Reserva(Long id, Long usuarioId, Long espacioId, LocalDate fecha) {
+    // Constructor sobrecargado para resolver la llamada desde ReservaDAO
+    public Reserva(Long id, Long usuarioId, Long espacioId, LocalDate fechaInicio) {
         this.id = id;
         this.usuarioId = usuarioId;
         this.espacioId = espacioId;
-        this.fecha = fecha;
+        this.fechaInicio = (fechaInicio != null) ? fechaInicio.atStartOfDay() : null;
+    }
+
+    public Reserva(Long id, Long usuarioId, Long espacioId, LocalDateTime fechaInicio) {
+        this.id = id;
+        this.usuarioId = usuarioId;
+        this.espacioId = espacioId;
+        this.fechaInicio = fechaInicio;
+    }
+
+    public Reserva(Long id, Long usuarioId, Long espacioId, LocalDateTime fechaInicio, LocalDateTime fechaFin, Double totalPagar) {
+        this.id = id;
+        this.usuarioId = usuarioId;
+        this.espacioId = espacioId;
+        this.fechaInicio = fechaInicio;
+        this.fechaFin = fechaFin;
+        this.totalPagar = totalPagar;
     }
 
     public Long getId() { return id; }
@@ -26,6 +46,15 @@ public class Reserva {
     public Long getEspacioId() { return espacioId; }
     public void setEspacioId(Long espacioId) { this.espacioId = espacioId; }
 
-    public LocalDate getFecha() { return fecha; }
-    public void setFecha(LocalDate fecha) { this.fecha = fecha; }
+    public LocalDateTime getFechaInicio() { return fechaInicio; }
+    public void setFechaInicio(LocalDateTime fechaInicio) { this.fechaInicio = fechaInicio; }
+
+    public LocalDateTime getFecha() { return fechaInicio; }
+    public void setFecha(LocalDateTime fecha) { this.fechaInicio = fecha; }
+
+    public LocalDateTime getFechaFin() { return fechaFin; }
+    public void setFechaFin(LocalDateTime fechaFin) { this.fechaFin = fechaFin; }
+
+    public Double getTotalPagar() { return totalPagar; }
+    public void setTotalPagar(Double totalPagar) { this.totalPagar = totalPagar; }
 }

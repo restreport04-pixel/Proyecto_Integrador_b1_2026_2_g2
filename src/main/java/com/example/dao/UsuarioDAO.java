@@ -1,14 +1,16 @@
 package com.example.dao;
 
-import com.example.model.Usuario;
+import java.util.List;
+
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import com.example.model.Usuario;
 
 @Repository
 public class UsuarioDAO {
+
     private final JdbcTemplate jdbcTemplate;
 
     public UsuarioDAO(JdbcTemplate jdbcTemplate) {
@@ -16,21 +18,28 @@ public class UsuarioDAO {
     }
 
     private final RowMapper<Usuario> mapper = (rs, rowNum) -> new Usuario(
-            rs.getLong("id"),
-            rs.getString("nombre"),
-            rs.getString("email")
+        rs.getLong("id"),
+        rs.getString("nombre"),
+        rs.getString("email"),
+        rs.getString("telefono")
     );
 
+    public List<Usuario> obtenerTodos() {
+        return jdbcTemplate.query("SELECT id, nombre, email, telefono FROM usuario", mapper);
+    }
+
     public List<Usuario> findAll() {
-        return jdbcTemplate.query("SELECT id, nombre, email FROM usuario", mapper);
+        return obtenerTodos();
     }
 
     public void save(Usuario u) {
-        jdbcTemplate.update("INSERT INTO usuario (nombre, email) VALUES (?, ?)", u.getNombre(), u.getEmail());
+        jdbcTemplate.update("INSERT INTO usuario (nombre, email, telefono) VALUES (?, ?, ?)", 
+            u.getNombre(), u.getEmail(), u.getTelefono());
     }
 
     public void update(Usuario u) {
-        jdbcTemplate.update("UPDATE usuario SET nombre = ?, email = ? WHERE id = ?", u.getNombre(), u.getEmail(), u.getId());
+        jdbcTemplate.update("UPDATE usuario SET nombre = ?, email = ?, telefono = ? WHERE id = ?", 
+            u.getNombre(), u.getEmail(), u.getTelefono(), u.getId());
     }
 
     public void delete(Long id) {

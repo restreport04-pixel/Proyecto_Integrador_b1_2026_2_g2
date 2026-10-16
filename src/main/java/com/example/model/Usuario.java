@@ -4,6 +4,7 @@ public class Usuario {
     private Long id;
     private String nombre;
     private String email;
+    private String telefono;
 
     public Usuario() {}
 
@@ -11,6 +12,13 @@ public class Usuario {
         this.id = id;
         this.nombre = nombre;
         this.email = email;
+    }
+
+    public Usuario(Long id, String nombre, String email, String telefono) {
+        this.id = id;
+        this.nombre = nombre;
+        this.email = email;
+        this.telefono = telefono;
     }
 
     public Long getId() { return id; }
@@ -21,4 +29,7 @@ public class Usuario {
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+
+    public String getTelefono() { return telefono; }
+    public void setTelefono(String telefono) { this.telefono = telefono; }
 }
