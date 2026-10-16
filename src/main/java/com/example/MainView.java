@@ -8,13 +8,26 @@ import com.example.model.Espacio;
 import com.example.model.Reserva;
 import com.example.model.TipoEspacio;
 import com.example.model.Usuario;
+
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.datetimepicker.DateTimePicker;
+import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.TabSheet;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.IntegerField;
+import com.vaadin.flow.component.textfield.NumberField;
+import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+
 import org.springframework.jdbc.core.JdbcTemplate;
 
 @PageTitle("Gestión Coworking - CRUD")
@@ -49,69 +62,305 @@ public class MainView extends VerticalLayout {
         add(titulo, tabSheet);
     }
 
+    // --- SECCIÓN 1: USUARIOS ---
     private Component crearSeccionUsuarios() {
         VerticalLayout layout = new VerticalLayout();
         layout.setSizeFull();
 
         Grid<Usuario> grid = new Grid<>(Usuario.class, false);
-        grid.addColumn(u -> u.getId()).setHeader("ID");
-        grid.addColumn(u -> u.getNombre()).setHeader("Nombre");
-        grid.addColumn(u -> u.getEmail()).setHeader("Email");
-        grid.addColumn(u -> u.getTelefono()).setHeader("Teléfono");
+        grid.addColumn(Usuario::getId).setHeader("ID").setAutoWidth(true);
+        grid.addColumn(Usuario::getNombre).setHeader("Nombre").setAutoWidth(true);
+        grid.addColumn(Usuario::getEmail).setHeader("Email").setAutoWidth(true);
+        grid.addColumn(Usuario::getTelefono).setHeader("Teléfono").setAutoWidth(true);
 
         grid.setItems(usuarioDAO.obtenerTodos());
+        grid.setSizeFull();
 
-        layout.add(grid);
+        TextField txtNombre = new TextField("Nombre Completo");
+        EmailField txtEmail = new EmailField("Correo Electrónico");
+        TextField txtTelefono = new TextField("Teléfono");
+
+        txtNombre.setRequired(true);
+        txtEmail.setErrorMessage("Ingrese un correo válido (ejemplo@dominio.com)");
+
+        Button btnGuardar = new Button("Guardar Usuario");
+        Button btnEliminar = new Button("Eliminar");
+        Button btnLimpiar = new Button("Limpiar Formulario");
+
+        btnGuardar.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        btnEliminar.addThemeVariants(ButtonVariant.LUMO_ERROR);
+
+        // Lógica de eventos de los botones
+        btnGuardar.addClickListener(e -> {
+            if (txtNombre.isEmpty() || txtEmail.isEmpty()) {
+                Notification.show("Por favor complete los campos requeridos");
+                return;
+            }
+            Usuario u = new Usuario(null, txtNombre.getValue(), txtEmail.getValue(), txtTelefono.getValue());
+            usuarioDAO.save(u);
+            grid.setItems(usuarioDAO.obtenerTodos());
+            txtNombre.clear();
+            txtEmail.clear();
+            txtTelefono.clear();
+            Notification.show("Usuario guardado con éxito");
+        });
+
+        btnEliminar.addClickListener(e -> {
+            Usuario seleccionado = grid.asSingleSelect().getValue();
+            if (seleccionado != null) {
+                usuarioDAO.delete(seleccionado.getId());
+                grid.setItems(usuarioDAO.obtenerTodos());
+                Notification.show("Usuario eliminado con éxito");
+            } else {
+                Notification.show("Seleccione un usuario de la tabla para eliminar");
+            }
+        });
+
+        btnLimpiar.addClickListener(e -> {
+            txtNombre.clear();
+            txtEmail.clear();
+            txtTelefono.clear();
+        });
+
+        HorizontalLayout acciones = new HorizontalLayout(btnGuardar, btnEliminar, btnLimpiar);
+
+        FormLayout formulario = new FormLayout();
+        formulario.add(txtNombre, txtEmail, txtTelefono, acciones);
+
+        HorizontalLayout mainContent = new HorizontalLayout(grid, formulario);
+        mainContent.setSizeFull();
+        mainContent.setFlexGrow(2, grid);
+        mainContent.setFlexGrow(1, formulario);
+
+        layout.add(mainContent);
         return layout;
     }
 
+    // --- SECCIÓN 2: TIPOS DE ESPACIO ---
     private Component crearSeccionTipoEspacio() {
         VerticalLayout layout = new VerticalLayout();
         layout.setSizeFull();
 
         Grid<TipoEspacio> grid = new Grid<>(TipoEspacio.class, false);
-        grid.addColumn(t -> t.getId()).setHeader("ID");
-        grid.addColumn(t -> t.getNombre()).setHeader("Nombre");
-        grid.addColumn(t -> t.getDescripcion()).setHeader("Descripción");
+        grid.addColumn(TipoEspacio::getId).setHeader("ID").setAutoWidth(true);
+        grid.addColumn(TipoEspacio::getNombre).setHeader("Nombre del Tipo").setAutoWidth(true);
+        grid.addColumn(TipoEspacio::getDescripcion).setHeader("Descripción").setAutoWidth(true);
 
         grid.setItems(tipoEspacioDAO.obtenerTodos());
+        grid.setSizeFull();
 
-        layout.add(grid);
+        TextField txtNombre = new TextField("Nombre del Tipo de Espacio");
+        TextArea txtDescripcion = new TextArea("Descripción / Detalles");
+
+        txtNombre.setRequired(true);
+
+        Button btnGuardar = new Button("Guardar Tipo");
+        Button btnEliminar = new Button("Eliminar");
+        Button btnLimpiar = new Button("Limpiar Formulario");
+
+        btnGuardar.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        btnEliminar.addThemeVariants(ButtonVariant.LUMO_ERROR);
+
+        // Lógica de eventos de los botones
+        btnGuardar.addClickListener(e -> {
+            if (txtNombre.isEmpty()) {
+                Notification.show("Ingrese el nombre del tipo de espacio");
+                return;
+            }
+            TipoEspacio t = new TipoEspacio(null, txtNombre.getValue(), txtDescripcion.getValue());
+            tipoEspacioDAO.guardar(t);
+            grid.setItems(tipoEspacioDAO.obtenerTodos());
+            txtNombre.clear();
+            txtDescripcion.clear();
+            Notification.show("Tipo de espacio guardado con éxito");
+        });
+
+        btnEliminar.addClickListener(e -> {
+            TipoEspacio seleccionado = grid.asSingleSelect().getValue();
+            if (seleccionado != null) {
+                tipoEspacioDAO.eliminar(seleccionado.getId());
+                grid.setItems(tipoEspacioDAO.obtenerTodos());
+                Notification.show("Tipo de espacio eliminado con éxito");
+            } else {
+                Notification.show("Seleccione un elemento de la tabla para eliminar");
+            }
+        });
+
+        btnLimpiar.addClickListener(e -> {
+            txtNombre.clear();
+            txtDescripcion.clear();
+        });
+
+        HorizontalLayout acciones = new HorizontalLayout(btnGuardar, btnEliminar, btnLimpiar);
+
+        FormLayout formulario = new FormLayout();
+        formulario.add(txtNombre, txtDescripcion, acciones);
+
+        HorizontalLayout mainContent = new HorizontalLayout(grid, formulario);
+        mainContent.setSizeFull();
+        mainContent.setFlexGrow(2, grid);
+        mainContent.setFlexGrow(1, formulario);
+
+        layout.add(mainContent);
         return layout;
     }
 
+    // --- SECCIÓN 3: ESPACIOS ---
     private Component crearSeccionEspacios() {
         VerticalLayout layout = new VerticalLayout();
         layout.setSizeFull();
 
         Grid<Espacio> grid = new Grid<>(Espacio.class, false);
-        grid.addColumn(e -> e.getId()).setHeader("ID");
-        grid.addColumn(e -> e.getNombre()).setHeader("Nombre");
-        grid.addColumn(e -> e.getCapacidad()).setHeader("Capacidad");
-        grid.addColumn(e -> e.getPrecioHora()).setHeader("Precio/Hora");
-        grid.addColumn(e -> e.getTipoEspacioId()).setHeader("Tipo Espacio ID");
+        grid.addColumn(Espacio::getId).setHeader("ID").setAutoWidth(true);
+        grid.addColumn(Espacio::getNombre).setHeader("Nombre").setAutoWidth(true);
+        grid.addColumn(Espacio::getCapacidad).setHeader("Capacidad").setAutoWidth(true);
+        grid.addColumn(Espacio::getPrecioHora).setHeader("Precio/Hora").setAutoWidth(true);
+        grid.addColumn(Espacio::getTipoEspacioId).setHeader("Tipo Espacio ID").setAutoWidth(true);
 
         grid.setItems(espacioDAO.obtenerTodos());
+        grid.setSizeFull();
 
-        layout.add(grid);
+        TextField txtNombre = new TextField("Nombre del Espacio");
+        IntegerField txtCapacidad = new IntegerField("Capacidad (personas)");
+        NumberField txtPrecio = new NumberField("Precio por Hora ($)");
+        NumberField txtTipoEspacioId = new NumberField("Tipo Espacio ID");
+
+        Button btnGuardar = new Button("Guardar Espacio");
+        Button btnEliminar = new Button("Eliminar");
+        Button btnLimpiar = new Button("Limpiar");
+
+        btnGuardar.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        btnEliminar.addThemeVariants(ButtonVariant.LUMO_ERROR);
+
+        // Lógica de eventos de los botones
+        btnGuardar.addClickListener(e -> {
+            if (txtNombre.isEmpty()) {
+                Notification.show("Ingrese el nombre del espacio");
+                return;
+            }
+            Long tipoId = txtTipoEspacioId.getValue() != null ? txtTipoEspacioId.getValue().longValue() : null;
+            Espacio esp = new Espacio(null, txtNombre.getValue(), txtCapacidad.getValue(), txtPrecio.getValue(), tipoId);
+            espacioDAO.guardar(esp);
+            grid.setItems(espacioDAO.obtenerTodos());
+            txtNombre.clear();
+            txtCapacidad.clear();
+            txtPrecio.clear();
+            txtTipoEspacioId.clear();
+            Notification.show("Espacio guardado con éxito");
+        });
+
+        btnEliminar.addClickListener(e -> {
+            Espacio seleccionado = grid.asSingleSelect().getValue();
+            if (seleccionado != null) {
+                espacioDAO.eliminar(seleccionado.getId());
+                grid.setItems(espacioDAO.obtenerTodos());
+                Notification.show("Espacio eliminado con éxito");
+            } else {
+                Notification.show("Seleccione un espacio de la tabla para eliminar");
+            }
+        });
+
+        btnLimpiar.addClickListener(e -> {
+            txtNombre.clear();
+            txtCapacidad.clear();
+            txtPrecio.clear();
+            txtTipoEspacioId.clear();
+        });
+
+        HorizontalLayout acciones = new HorizontalLayout(btnGuardar, btnEliminar, btnLimpiar);
+
+        FormLayout formulario = new FormLayout();
+        formulario.add(txtNombre, txtCapacidad, txtPrecio, txtTipoEspacioId, acciones);
+
+        HorizontalLayout mainContent = new HorizontalLayout(grid, formulario);
+        mainContent.setSizeFull();
+        mainContent.setFlexGrow(2, grid);
+        mainContent.setFlexGrow(1, formulario);
+
+        layout.add(mainContent);
         return layout;
     }
 
+    // --- SECCIÓN 4: RESERVAS ---
     private Component crearSeccionReservas() {
         VerticalLayout layout = new VerticalLayout();
         layout.setSizeFull();
 
         Grid<Reserva> grid = new Grid<>(Reserva.class, false);
-        grid.addColumn(r -> r.getId()).setHeader("ID");
-        grid.addColumn(r -> r.getUsuarioId()).setHeader("Usuario ID");
-        grid.addColumn(r -> r.getEspacioId()).setHeader("Espacio ID");
-        grid.addColumn(r -> r.getFechaInicio()).setHeader("Fecha Inicio");
-        grid.addColumn(r -> r.getFechaFin()).setHeader("Fecha Fin");
-        grid.addColumn(r -> r.getTotalPagar()).setHeader("Total Pagar");
+        grid.addColumn(Reserva::getId).setHeader("ID").setAutoWidth(true);
+        grid.addColumn(Reserva::getUsuarioId).setHeader("Usuario ID").setAutoWidth(true);
+        grid.addColumn(Reserva::getEspacioId).setHeader("Espacio ID").setAutoWidth(true);
+        grid.addColumn(Reserva::getFechaInicio).setHeader("Fecha Inicio").setAutoWidth(true);
+        grid.addColumn(Reserva::getFechaFin).setHeader("Fecha Fin").setAutoWidth(true);
+        grid.addColumn(Reserva::getTotalPagar).setHeader("Total Pagar ($)").setAutoWidth(true);
 
         grid.setItems(reservaDAO.obtenerTodos());
+        grid.setSizeFull();
 
-        layout.add(grid);
+        IntegerField txtUsuarioId = new IntegerField("ID del Usuario");
+        IntegerField txtEspacioId = new IntegerField("ID del Espacio");
+        DateTimePicker txtFechaInicio = new DateTimePicker("Fecha y Hora de Inicio");
+        DateTimePicker txtFechaFin = new DateTimePicker("Fecha y Hora de Fin");
+        NumberField txtTotalPagar = new NumberField("Total Pagar ($)");
+
+        Button btnGuardar = new Button("Guardar Reserva");
+        Button btnEliminar = new Button("Eliminar Reserva");
+        Button btnLimpiar = new Button("Limpiar");
+
+        btnGuardar.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        btnEliminar.addThemeVariants(ButtonVariant.LUMO_ERROR);
+
+        // Lógica de eventos de los botones
+        btnGuardar.addClickListener(e -> {
+            if (txtUsuarioId.getValue() == null || txtEspacioId.getValue() == null) {
+                Notification.show("Ingrese los ID de Usuario y Espacio obligatorios");
+                return;
+            }
+            Long usuarioId = txtUsuarioId.getValue().longValue();
+            Long espacioId = txtEspacioId.getValue().longValue();
+
+            Reserva r = new Reserva(null, usuarioId, espacioId, txtFechaInicio.getValue(), txtFechaFin.getValue(), txtTotalPagar.getValue());
+            reservaDAO.guardar(r);
+            grid.setItems(reservaDAO.obtenerTodos());
+            txtUsuarioId.clear();
+            txtEspacioId.clear();
+            txtFechaInicio.clear();
+            txtFechaFin.clear();
+            txtTotalPagar.clear();
+            Notification.show("Reserva guardada con éxito");
+        });
+
+        btnEliminar.addClickListener(e -> {
+            Reserva seleccionada = grid.asSingleSelect().getValue();
+            if (seleccionada != null) {
+                reservaDAO.eliminar(seleccionada.getId());
+                grid.setItems(reservaDAO.obtenerTodos());
+                Notification.show("Reserva eliminada con éxito");
+            } else {
+                Notification.show("Seleccione una reserva de la tabla para eliminar");
+            }
+        });
+
+        btnLimpiar.addClickListener(e -> {
+            txtUsuarioId.clear();
+            txtEspacioId.clear();
+            txtFechaInicio.clear();
+            txtFechaFin.clear();
+            txtTotalPagar.clear();
+        });
+
+        HorizontalLayout acciones = new HorizontalLayout(btnGuardar, btnEliminar, btnLimpiar);
+
+        FormLayout formulario = new FormLayout();
+        formulario.add(txtUsuarioId, txtEspacioId, txtFechaInicio, txtFechaFin, txtTotalPagar, acciones);
+
+        HorizontalLayout mainContent = new HorizontalLayout(grid, formulario);
+        mainContent.setSizeFull();
+        mainContent.setFlexGrow(2, grid);
+        mainContent.setFlexGrow(1, formulario);
+
+        layout.add(mainContent);
         return layout;
     }
+
 }
