@@ -23,4 +23,19 @@ public class TipoEspacioDAO {
             rs.getString("descripcion")
         ));
     }
+
+    public void guardar(TipoEspacio tipoEspacio) {
+        String sql = "INSERT INTO tipo_espacio (nombre, descripcion) VALUES (?, ?)";
+        jdbcTemplate.update(sql, tipoEspacio.getNombre(), tipoEspacio.getDescripcion());
+    }
+
+    public void actualizar(TipoEspacio tipoEspacio) {
+        String sql = "UPDATE tipo_espacio SET nombre = ?, descripcion = ? WHERE id = ?";
+        jdbcTemplate.update(sql, tipoEspacio.getNombre(), tipoEspacio.getDescripcion(), tipoEspacio.getId());
+    }
+
+    public void eliminar(Long id) {
+        String sql = "DELETE FROM tipo_espacio WHERE id = ?";
+        jdbcTemplate.update(sql, id);
+    }
 }

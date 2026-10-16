@@ -27,4 +27,33 @@ public class ReservaDAO {
             rs.getObject("total_pagar", Double.class)
         ));
     }
+    
+    public void guardar(Reserva reserva) {
+        String sql = "INSERT INTO reserva (usuario_id, espacio_id, fecha_inicio, fecha_fin, total_pagar) VALUES (?, ?, ?, ?, ?)";
+        jdbcTemplate.update(sql, 
+            reserva.getUsuarioId(), 
+            reserva.getEspacioId(), 
+            reserva.getFechaInicio(), 
+            reserva.getFechaFin(), 
+            reserva.getTotalPagar()
+        );
+    }
+
+    public void actualizar(Reserva reserva) {
+        String sql = "UPDATE reserva SET usuario_id = ?, espacio_id = ?, fecha_inicio = ?, fecha_fin = ?, total_pagar = ? WHERE id = ?";
+        jdbcTemplate.update(sql, 
+            reserva.getUsuarioId(), 
+            reserva.getEspacioId(), 
+            reserva.getFechaInicio(), 
+            reserva.getFechaFin(), 
+            reserva.getTotalPagar(), 
+            reserva.getId()
+        );
+    }
+
+    public void eliminar(Long id) {
+        String sql = "DELETE FROM reserva WHERE id = ?";
+        jdbcTemplate.update(sql, id);
+    }
+
 }
